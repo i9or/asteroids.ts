@@ -1,0 +1,38 @@
+{
+  "name": "asteroids.ts",
+  "version": "0.1.0",
+  "description": "classic Asteroids game clone",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Info: no test specified\" && exit 0",
+    "start": "parcel src/index.html",
+    "build": "parcel build src/index.html",
+    "postinstall": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/i9or/asteroids.ts.git"
+  },
+  "keywords": [
+    "html5",
+    "game"
+  ],
+  "author": "Igor <dont@bzzr.me> (https://ignorethis.page/)",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/i9or/asteroids.ts/issues"
+  },
+  "homepage": "https://github.com/i9or/asteroids.ts#readme",
+  "devDependencies": {
+    "husky": "^5.0.9",
+    "lint-staged": "^10.5.4",
+    "parcel-bundler": "^1.12.4",
+    "prettier": "^2.2.1",
+    "typescript": "^4.1.3"
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx,json,css,md}": [
+      "prettier --write"
+    ]
+  }
+}

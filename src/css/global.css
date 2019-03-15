@@ -1,0 +1,12 @@
+html {
+  background-color: #111111;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+}
+
+canvas {
+  border: 1px solid grey;
+}
