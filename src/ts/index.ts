@@ -1,6 +1,8 @@
-import { drawGrid } from "./drawing";
+import "../css/global.css";
+
+import { drawGrid } from "./draw-grid";
 import { Asteroid } from "./Asteroid";
-import { drawShip } from "./Ship";
+import { drawShip } from "./draw-ship";
 
 class Game {
   private canvas: HTMLCanvasElement;
