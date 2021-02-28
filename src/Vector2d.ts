@@ -1,9 +1,4 @@
-export interface Vector2d {
-  x: number;
-  y: number;
-}
-
-export class Vec2 implements Vector2d {
+export class Vector2d {
   x: number;
   y: number;
 

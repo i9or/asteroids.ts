@@ -1,8 +1,8 @@
-import "../css/global.css";
+import "./global.css";
 
-import { drawGrid } from "./draw-grid";
+import { Grid } from "./Grid";
 import { Asteroid } from "./Asteroid";
-import { drawShip } from "./draw-ship";
+import { Ship } from "./Ship";
 
 class Game {
   private canvas: HTMLCanvasElement;
@@ -10,12 +10,15 @@ class Game {
 
   private readonly guide?: boolean = false;
 
-  private asteroids: Asteroid[] = [];
+  private readonly asteroids: Asteroid[];
+  private ship: Ship;
 
   private previous: number = 0;
   private elapsed: number = 0;
 
   constructor(canvas: HTMLElement | null, guide?: boolean) {
+    console.log("[[Initializing Asteroids game]]");
+
     if (!canvas) {
       throw new Error("Canvas element is not provided");
     }
@@ -29,20 +32,30 @@ class Game {
 
     this.ctx = ctx;
     this.guide = guide;
-  }
 
-  private initGame = () => {
     this.ctx.lineWidth = 0.5;
     this.ctx.strokeStyle = "white";
     this.ctx.fillStyle = "#bada55";
 
-    this.asteroids = [
-      new Asteroid(24, 34, this.w, this.h, { noise: 0.5 }),
-      new Asteroid(24, 43, this.w, this.h, { noise: 0.5 }),
-      new Asteroid(12, 29, this.w, this.h, { noise: 0.3 }),
-      new Asteroid(5, 12, this.w, this.h, { noise: 0.7 }),
-    ];
-  };
+    this.asteroids = [];
+    for (let i = 0; i < 4; i++) {
+      const asteroid = new Asteroid(
+        Math.random() * this.ctx.canvas.width,
+        Math.random() * this.ctx.canvas.height,
+        2000 + Math.random() * 8000
+      );
+      asteroid.push(Math.random() * 2 * Math.PI, 2000, 60);
+      asteroid.twist((Math.random() - 0.5) * 500, 60);
+
+      this.asteroids.push(asteroid);
+    }
+
+    this.ship = new Ship(
+      this.ctx.canvas.width / 2,
+      this.ctx.canvas.height / 2,
+      { guide: true }
+    );
+  }
 
   private get w() {
     return this.ctx.canvas.width;
@@ -70,32 +83,41 @@ class Game {
 
   private draw = () => {
     if (this.guide) {
-      drawGrid(this.ctx);
+      Grid.draw(this.ctx);
     }
 
     for (const asteroid of this.asteroids) {
       asteroid.draw(this.ctx, this.guide);
     }
 
-    this.ctx.save();
-    this.ctx.translate(100, 200);
-    drawShip(this.ctx, 10, this.guide);
-    this.ctx.restore();
+    this.ship.draw(this.ctx);
   };
 
   private update = (elapsed: number) => {
-    for (let asteroid of this.asteroids) {
-      asteroid.update(this.ctx, elapsed);
+    if (Math.abs(this.ship.velocityValue) < 15) {
+      this.ship.angle += Math.PI * 2 * 0.01;
     }
+
+    if (Math.abs(this.ship.velocityValue) > 150) {
+      this.ship.angle = this.ship.movementAngle + Math.PI;
+    }
+
+    this.ship.push(this.ship.angle, 1000, elapsed);
+
+    for (let asteroid of this.asteroids) {
+      asteroid.update(elapsed, this.ctx);
+    }
+
+    this.ship.update(elapsed, this.ctx);
   };
 
   public run = () => {
-    console.log("[[Initializing Asteroids game]]");
-    this.initGame();
     console.info("[[Running Asteroids game]]");
     window.requestAnimationFrame(this.frame);
   };
 }
 
 const game = new Game(document.getElementById("asteroids"), true);
+// @ts-ignore
+window.game = game;
 game.run();
