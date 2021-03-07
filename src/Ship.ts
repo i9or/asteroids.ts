@@ -50,7 +50,7 @@ export class Ship extends Mass {
 
     ctx.save();
 
-    let shipArcAngle = 0.25 * Math.PI;
+    const shipArcAngle = 0.25 * Math.PI;
 
     if (this.guide) {
       this.drawBottomGuide(ctx);
@@ -64,14 +64,14 @@ export class Ship extends Mass {
 
       ctx.beginPath();
       ctx.moveTo(
-        (Math.cos(Math.PI + Math.PI * 0.8) * this.radius) / 2 - 10,
-        (Math.sin(Math.PI + Math.PI * 0.8) * this.radius) / 2
+        (Math.cos(Math.PI + shipArcAngle * 0.8) * this.radius) / 2,
+        (Math.sin(Math.PI + shipArcAngle * 0.8) * this.radius) / 2
       );
       ctx.quadraticCurveTo(
         -this.radius * 2,
         0,
-        (Math.cos(Math.PI - Math.PI * 0.8) * this.radius) / 2 - 10,
-        (Math.sin(Math.PI - Math.PI * 0.8) * this.radius) / 2
+        (Math.cos(Math.PI - shipArcAngle * 0.8) * this.radius) / 2,
+        (Math.sin(Math.PI - shipArcAngle * 0.8) * this.radius) / 2
       );
       ctx.fill();
       ctx.stroke();

@@ -54,7 +54,7 @@ class Game {
       this.ctx.canvas.width / 2,
       this.ctx.canvas.height / 2,
       1000,
-      { guide: true }
+      { guide: this.guide }
     );
 
     this.ctx.canvas.addEventListener("keydown", (event) => {

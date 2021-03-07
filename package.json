@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --base=/asteroids.ts/",
     "serve": "vite preview",
     "postinstall": "husky install",
     "clean": "rimraf ./dist",
