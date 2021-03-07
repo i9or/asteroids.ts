@@ -53,8 +53,19 @@ class Game {
     this.ship = new Ship(
       this.ctx.canvas.width / 2,
       this.ctx.canvas.height / 2,
+      1000,
       { guide: true }
     );
+
+    this.ctx.canvas.addEventListener("keydown", (event) => {
+      this.keyboardHandler(event, true);
+    });
+
+    this.ctx.canvas.addEventListener("keyup", (event) => {
+      this.keyboardHandler(event, false);
+    });
+
+    this.ctx.canvas.focus();
   }
 
   private get w() {
@@ -94,22 +105,34 @@ class Game {
   };
 
   private update = (elapsed: number) => {
-    if (Math.abs(this.ship.velocityValue) < 15) {
-      this.ship.angle += Math.PI * 2 * 0.01;
-    }
-
-    if (Math.abs(this.ship.velocityValue) > 150) {
-      this.ship.angle = this.ship.movementAngle + Math.PI;
-    }
-
-    this.ship.push(this.ship.angle, 1000, elapsed);
-
     for (let asteroid of this.asteroids) {
       asteroid.update(elapsed, this.ctx);
     }
 
     this.ship.update(elapsed, this.ctx);
   };
+
+  private keyboardHandler(event: KeyboardEvent, isThrusterOn: boolean) {
+    let nothingHandled = false;
+
+    switch (event.code) {
+      case "ArrowUp":
+        this.ship.thrusterOn = isThrusterOn;
+        break;
+      case "ArrowRight":
+        this.ship.rightThrusterOn = isThrusterOn;
+        break;
+      case "ArrowLeft":
+        this.ship.leftThrusterOn = isThrusterOn;
+        break;
+      default:
+        nothingHandled = true;
+    }
+
+    if (!nothingHandled) {
+      event.preventDefault();
+    }
+  }
 
   public run = () => {
     console.info("[[Running Asteroids game]]");

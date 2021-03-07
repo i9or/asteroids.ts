@@ -16,9 +16,25 @@ export class Ship extends Mass {
   private readonly fill: string;
   private readonly tailCurve: number;
   private readonly sideCurve: number;
+  private readonly thrusterPower: number;
+  private readonly steeringPower: number;
 
-  constructor(x: number, y: number, options?: ShipOptions) {
+  public thrusterOn: boolean;
+  public leftThrusterOn: boolean;
+  public rightThrusterOn: boolean;
+
+  constructor(
+    x: number,
+    y: number,
+    thrusterPower: number,
+    options?: ShipOptions
+  ) {
     super(x, y, 10, 15, 1.5 * Math.PI);
+    this.thrusterPower = thrusterPower;
+    this.steeringPower = this.thrusterPower / 20;
+    this.thrusterOn = false;
+    this.leftThrusterOn = false;
+    this.rightThrusterOn = false;
     this.guide = options?.guide ?? false;
     this.lineWidth = options?.lineWidth ?? 2;
     this.stroke = options?.stroke ?? "white";
@@ -28,12 +44,39 @@ export class Ship extends Mass {
   }
 
   private drawShip(ctx: CanvasRenderingContext2D) {
+    if (this.guide) {
+      this.drawAngleAndPositionGuide(ctx);
+    }
+
     ctx.save();
 
     let shipArcAngle = 0.25 * Math.PI;
 
     if (this.guide) {
       this.drawBottomGuide(ctx);
+    }
+
+    if (this.thrusterOn) {
+      ctx.save();
+      ctx.strokeStyle = "yellow";
+      ctx.fillStyle = "red";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(
+        (Math.cos(Math.PI + Math.PI * 0.8) * this.radius) / 2 - 10,
+        (Math.sin(Math.PI + Math.PI * 0.8) * this.radius) / 2
+      );
+      ctx.quadraticCurveTo(
+        -this.radius * 2,
+        0,
+        (Math.cos(Math.PI - Math.PI * 0.8) * this.radius) / 2 - 10,
+        (Math.sin(Math.PI - Math.PI * 0.8) * this.radius) / 2
+      );
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
     }
 
     ctx.strokeStyle = this.stroke;
@@ -75,6 +118,27 @@ export class Ship extends Mass {
     ctx.restore();
   }
 
+  private drawAngleAndPositionGuide(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    ctx.rotate(-this.angle);
+    ctx.strokeText(
+      `angle: ${Math.floor((this.angle * 180.0) / Math.PI)}`,
+      20,
+      this.radius
+    );
+    ctx.strokeText(
+      `x: ${Math.floor(this.position.x)}, y: ${Math.floor(this.position.y)}`,
+      20,
+      this.radius + 12
+    );
+    ctx.strokeText(
+      `velocity: ${Math.floor(this.velocityValue)}`,
+      20,
+      this.radius + 12 * 2
+    );
+    ctx.restore();
+  }
+
   private drawGuideTop(ctx: CanvasRenderingContext2D) {
     ctx.lineWidth = 0.5;
     ctx.strokeStyle = "white";
@@ -110,5 +174,22 @@ export class Ship extends Mass {
     ctx.rotate(this.angle);
     this.drawShip(ctx);
     ctx.restore();
+  }
+
+  update(elapsed: number, ctx: CanvasRenderingContext2D) {
+    if (this.thrusterOn) {
+      this.push(this.angle, this.thrusterPower, elapsed);
+    }
+
+    let steeringThrusterDirection = 0;
+    if (this.rightThrusterOn) {
+      steeringThrusterDirection += 1;
+    }
+    if (this.leftThrusterOn) {
+      steeringThrusterDirection -= 1;
+    }
+    this.twist(steeringThrusterDirection * this.steeringPower, elapsed);
+
+    super.update(elapsed, ctx);
   }
 }
