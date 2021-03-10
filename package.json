@@ -1,6 +1,6 @@
 {
   "name": "asteroids.ts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Classic Asteroids game clone",
   "private": true,
   "scripts": {
