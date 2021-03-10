@@ -183,13 +183,6 @@ class Game {
       }
     });
 
-    if (this.ship.healthValue <= 0) {
-      this.gameOver = true;
-      return;
-    }
-
-    this.ship.update(elapsed, this.ctx);
-
     this.projectiles.forEach((projectile) => {
       projectile.update(elapsed, this.ctx);
       if (!projectile.isDead) {
@@ -206,11 +199,18 @@ class Game {
     this.projectiles = this.projectiles.filter((p) => !p.isDead);
     this.asteroids = this.asteroids.filter((a) => !a.isDamaged);
 
+    this.levelupMessage.update(elapsed);
+
+    if (this.ship.healthValue <= 0) {
+      this.gameOver = true;
+      return;
+    }
+
+    this.ship.update(elapsed, this.ctx);
+
     if (this.ship.isFired && this.ship.isLoaded) {
       this.projectiles.push(this.ship.emitProjectile(elapsed));
     }
-
-    this.levelupMessage.update(elapsed);
   };
 
   private keyboardHandler(event: KeyboardEvent, isPressed: boolean) {
