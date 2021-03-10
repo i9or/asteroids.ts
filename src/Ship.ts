@@ -1,7 +1,8 @@
 import { Mass } from "./Mass";
+import { Projectile } from "./Projectile";
+import { Vector2d } from "./Vector2d";
 
 type ShipOptions = {
-  guide?: boolean;
   lineWidth?: number;
   stroke?: string;
   fill?: string;
@@ -10,41 +11,49 @@ type ShipOptions = {
 };
 
 export class Ship extends Mass {
-  private readonly guide: boolean;
   private readonly lineWidth: number;
   private readonly stroke: string;
   private readonly fill: string;
   private readonly tailCurve: number;
   private readonly sideCurve: number;
   private readonly thrusterPower: number;
-  private readonly steeringPower: number;
+  private readonly weaponPower: number;
+  private readonly weaponReloadTime: number = 0.25;
+  private timeUntilReload: number;
 
-  public thrusterOn: boolean;
-  public leftThrusterOn: boolean;
-  public rightThrusterOn: boolean;
+  thrusterOn: boolean;
+  leftThrusterOn: boolean;
+  rightThrusterOn: boolean;
+  isFired: boolean = false;
+  isLoaded: boolean = false;
+  isCompromised: boolean = false;
+  health: number;
+  readonly maxHealth: number = 2.0;
 
   constructor(
     x: number,
     y: number,
     thrusterPower: number,
+    weaponPower?: number,
     options?: ShipOptions
   ) {
     super(x, y, 10, 15, 1.5 * Math.PI);
     this.thrusterPower = thrusterPower;
-    this.steeringPower = this.thrusterPower / 20;
+    this.weaponPower = weaponPower ?? 200;
     this.thrusterOn = false;
     this.leftThrusterOn = false;
     this.rightThrusterOn = false;
-    this.guide = options?.guide ?? false;
     this.lineWidth = options?.lineWidth ?? 2;
     this.stroke = options?.stroke ?? "white";
     this.fill = options?.fill ?? "black";
     this.tailCurve = options?.tailCurve ?? 0.25;
     this.sideCurve = options?.sideCurve ?? 0.75;
+    this.timeUntilReload = this.weaponReloadTime;
+    this.health = this.maxHealth;
   }
 
-  private drawShip(ctx: CanvasRenderingContext2D) {
-    if (this.guide) {
+  private drawShip(ctx: CanvasRenderingContext2D, guide: boolean = false) {
+    if (guide) {
       this.drawAngleAndPositionGuide(ctx);
     }
 
@@ -52,7 +61,7 @@ export class Ship extends Mass {
 
     const shipArcAngle = 0.25 * Math.PI;
 
-    if (this.guide) {
+    if (guide) {
       this.drawBottomGuide(ctx);
     }
 
@@ -79,9 +88,9 @@ export class Ship extends Mass {
       ctx.restore();
     }
 
-    ctx.strokeStyle = this.stroke;
+    ctx.strokeStyle = this.isCompromised ? "red" : this.stroke;
     ctx.lineWidth = this.lineWidth;
-    ctx.fillStyle = this.fill;
+    ctx.fillStyle = this.isCompromised ? "maroon" : this.fill;
 
     ctx.beginPath();
     ctx.moveTo(this.radius, 0);
@@ -111,7 +120,7 @@ export class Ship extends Mass {
     ctx.stroke();
     ctx.closePath();
 
-    if (this.guide) {
+    if (guide) {
       this.drawGuideTop(ctx);
     }
 
@@ -168,11 +177,24 @@ export class Ship extends Mass {
     ctx.fill();
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, guide: boolean = false) {
     ctx.save();
     ctx.translate(this.position.x, this.position.y);
     ctx.rotate(this.angle);
-    this.drawShip(ctx);
+
+    if (guide && this.isCompromised) {
+      ctx.save();
+
+      ctx.fillStyle = "red";
+
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius, 0, 2 * Math.PI);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    this.drawShip(ctx, guide);
     ctx.restore();
   }
 
@@ -188,8 +210,36 @@ export class Ship extends Mass {
     if (this.leftThrusterOn) {
       steeringThrusterDirection -= 1;
     }
-    this.twist(steeringThrusterDirection * this.steeringPower, elapsed);
+
+    this.angle += steeringThrusterDirection * 3 * elapsed;
+
+    this.isLoaded = this.timeUntilReload === 0;
+    if (!this.isLoaded) {
+      this.timeUntilReload -= Math.min(elapsed, this.timeUntilReload);
+    }
+
+    if (this.isCompromised) {
+      this.health -= Math.min(elapsed, this.health);
+    }
 
     super.update(elapsed, ctx);
+  }
+
+  emitProjectile(elapsed: number) {
+    const projectile = new Projectile(
+      this.position.x + Math.cos(this.angle) * this.radius,
+      this.position.y + Math.sin(this.angle) * this.radius,
+      0.025,
+      1,
+      new Vector2d(this.velocity.x, this.velocity.y),
+      this.rotationSpeed
+    );
+
+    projectile.push(this.angle, this.weaponPower, elapsed);
+    this.push(this.angle + Math.PI, this.weaponPower, elapsed);
+
+    this.timeUntilReload = this.weaponReloadTime;
+
+    return projectile;
   }
 }

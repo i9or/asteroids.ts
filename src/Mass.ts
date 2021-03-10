@@ -10,6 +10,10 @@ export class Mass {
 
   angle: number;
 
+  protected static calculateRadius(mass: number, density = 1) {
+    return Math.sqrt(mass / density / Math.PI);
+  }
+
   constructor(
     x: number,
     y: number,
@@ -67,6 +71,22 @@ export class Mass {
 
   get movementAngle() {
     return Math.atan2(this.velocity.y, this.velocity.x);
+  }
+
+  get radiusValue() {
+    return this.radius;
+  }
+
+  get massValue() {
+    return this.mass;
+  }
+
+  get x() {
+    return this.position.x;
+  }
+
+  get y() {
+    return this.position.y;
   }
 
   draw(ctx: CanvasRenderingContext2D) {

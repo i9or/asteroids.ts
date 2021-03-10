@@ -15,10 +15,7 @@ export class Asteroid extends Mass {
   private readonly stroke: string;
   private readonly fill: string;
   private readonly circumference: number;
-
-  private static calculateRadius(mass: number, density = 1) {
-    return Math.sqrt(mass / density / Math.PI);
-  }
+  private shot = false;
 
   constructor(
     x: number,
@@ -32,7 +29,7 @@ export class Asteroid extends Mass {
       x,
       y,
       mass,
-      Asteroid.calculateRadius(mass, options?.density),
+      Mass.calculateRadius(mass, options?.density),
       0,
       velocity,
       rotationSpeed
@@ -98,5 +95,23 @@ export class Asteroid extends Mass {
     ctx.rotate(this.angle);
     this.drawAsteroid(ctx, guide);
     ctx.restore();
+  }
+
+  get isDamaged() {
+    return this.shot;
+  }
+
+  destroy() {
+    this.shot = true;
+  }
+
+  makeChild(mass: number) {
+    return new Asteroid(
+      this.x,
+      this.y,
+      mass,
+      new Vector2d(this.velocity.x, this.velocity.y),
+      this.rotationSpeed
+    );
   }
 }
