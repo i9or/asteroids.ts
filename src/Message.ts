@@ -1,6 +1,6 @@
 import { Vector2d } from "./Vector2d";
 
-type MessageOptions = {
+export type MessageOptions = {
   mainPt?: number;
   subPt?: number;
   fillStyle?: string;
@@ -8,11 +8,11 @@ type MessageOptions = {
 };
 
 export class Message {
-  private position: Vector2d;
-  private mainPt: number;
-  private subPt: number;
-  private fillStyle: string;
-  private textAlign: CanvasTextAlign;
+  protected position: Vector2d;
+  protected readonly mainPt: number;
+  private readonly subPt: number;
+  protected readonly fillStyle: string;
+  protected readonly textAlign: CanvasTextAlign;
 
   constructor(x: number, y: number, options?: MessageOptions) {
     this.position = new Vector2d(x, y);

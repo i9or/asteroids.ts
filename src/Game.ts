@@ -9,6 +9,7 @@ import { isColliding } from "./util";
 import { Indicator } from "./Indicator";
 import { NumberIndicator } from "./NumberIndicator";
 import { Message } from "./Message";
+import { DisappearingMessage } from "./DisappearingMessage";
 
 class Game {
   private canvas: HTMLCanvasElement;
@@ -23,6 +24,8 @@ class Game {
   private readonly scoreIndicator: NumberIndicator;
   private readonly fpsIndicator: NumberIndicator;
   private readonly message: Message;
+  private levelIndicator: NumberIndicator;
+  private levelupMessage: DisappearingMessage;
 
   private previous: number = 0;
   private elapsed: number = 0;
@@ -30,9 +33,10 @@ class Game {
   private readonly asteroidMass = 10000;
   private readonly massDestroyed = 500;
   private score = 0;
-  private fps = 0;
 
+  private fps = 0;
   private gameOver = false;
+  private level = 1;
 
   constructor(canvas: HTMLElement | null, guide?: boolean) {
     console.info("[[Initializing Asteroids game]]");
@@ -63,6 +67,15 @@ class Game {
       digits: 2,
     });
     this.message = new Message(this.w / 2, this.h * 0.45);
+    this.levelIndicator = new NumberIndicator("Level", this.w / 2, 5, {
+      align: "center",
+    });
+    this.levelupMessage = new DisappearingMessage(
+      this.w / 2,
+      this.h / 2,
+      undefined,
+      { align: "center" }
+    );
 
     this.ctx.canvas.addEventListener("keydown", (event) => {
       this.keyboardHandler(event, true);
@@ -73,24 +86,19 @@ class Game {
     });
 
     this.asteroids = [];
-    for (let i = 0; i < 6; i++) {
-      this.asteroids.push(this.createMovingAsteroid());
-    }
+    this.asteroids.push(this.createMovingAsteroid());
 
     this.ship = new Ship(this.w / 2, this.h / 2, 1000, 400);
   }
 
   private resetGame() {
-    this.asteroids = [];
-    for (let i = 0; i < 6; i++) {
-      this.asteroids.push(this.createMovingAsteroid());
-    }
-
     this.ship = new Ship(this.w / 2, this.h / 2, 1000, 400);
-
+    this.asteroids = [];
     this.projectiles = [];
     this.score = 0;
     this.gameOver = false;
+    this.level = 0;
+    this.levelUp();
   }
 
   private get w() {
@@ -153,6 +161,8 @@ class Game {
       this.ship.maxHealthValue
     );
     this.scoreIndicator.draw(this.ctx, this.score);
+    this.levelIndicator.draw(this.ctx, this.level);
+    this.levelupMessage.draw(this.ctx, `Level ${this.level}`);
 
     if (this.guide) {
       this.fpsIndicator.draw(this.ctx, this.fps);
@@ -160,6 +170,10 @@ class Game {
   };
 
   private update = (elapsed: number) => {
+    if (this.asteroids.length === 0) {
+      this.levelUp();
+    }
+
     this.ship.isCompromised = false;
 
     this.asteroids.forEach((asteroid) => {
@@ -195,6 +209,8 @@ class Game {
     if (this.ship.isFired && this.ship.isLoaded) {
       this.projectiles.push(this.ship.emitProjectile(elapsed));
     }
+
+    this.levelupMessage.update(elapsed);
   };
 
   private keyboardHandler(event: KeyboardEvent, isPressed: boolean) {
@@ -283,6 +299,15 @@ class Game {
         this.asteroids.push(childAsteroid);
       }
     });
+  }
+
+  private levelUp() {
+    this.level += 1;
+    this.levelupMessage.reset();
+
+    for (let i = 0; i < this.level; i++) {
+      this.asteroids.push(this.createMovingAsteroid());
+    }
   }
 
   public run = () => {
