@@ -20,6 +20,8 @@ export class Ship extends Mass {
   private readonly weaponPower: number;
   private readonly weaponReloadTime: number = 0.25;
   private timeUntilReload: number;
+  private health: number;
+  private readonly maxHealth: number = 2.0;
 
   thrusterOn: boolean;
   leftThrusterOn: boolean;
@@ -27,8 +29,6 @@ export class Ship extends Mass {
   isFired: boolean = false;
   isLoaded: boolean = false;
   isCompromised: boolean = false;
-  health: number;
-  readonly maxHealth: number = 2.0;
 
   constructor(
     x: number,
@@ -241,5 +241,13 @@ export class Ship extends Mass {
     this.timeUntilReload = this.weaponReloadTime;
 
     return projectile;
+  }
+
+  get healthValue() {
+    return this.health;
+  }
+
+  get maxHealthValue() {
+    return this.maxHealth;
   }
 }

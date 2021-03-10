@@ -1,11 +1,9 @@
 import { Vector2d } from "./Vector2d";
 
-type TextAlign = "left" | "right" | "center" | "start" | "end";
-
 type NumberIndicatorOptions = {
   digits?: number;
   pt?: number;
-  align?: TextAlign;
+  align?: CanvasTextAlign;
 };
 
 export class NumberIndicator {
@@ -13,7 +11,7 @@ export class NumberIndicator {
   private position: Vector2d;
   private readonly digits: number;
   private readonly pt: number;
-  private readonly align: TextAlign;
+  private readonly align: CanvasTextAlign;
 
   constructor(
     label: string,

@@ -8,6 +8,7 @@ import { Mass } from "./Mass";
 import { isColliding } from "./util";
 import { Indicator } from "./Indicator";
 import { NumberIndicator } from "./NumberIndicator";
+import { Message } from "./Message";
 
 class Game {
   private canvas: HTMLCanvasElement;
@@ -16,11 +17,12 @@ class Game {
   private guide?: boolean = false;
 
   private asteroids: Asteroid[];
-  private readonly ship: Ship;
+  private ship: Ship;
   private projectiles: Projectile[] = [];
   private readonly healthIndicator: Indicator;
   private readonly scoreIndicator: NumberIndicator;
   private readonly fpsIndicator: NumberIndicator;
+  private readonly message: Message;
 
   private previous: number = 0;
   private elapsed: number = 0;
@@ -29,6 +31,8 @@ class Game {
   private readonly massDestroyed = 500;
   private score = 0;
   private fps = 0;
+
+  private gameOver = false;
 
   constructor(canvas: HTMLElement | null, guide?: boolean) {
     console.info("[[Initializing Asteroids game]]");
@@ -45,24 +49,20 @@ class Game {
     }
 
     this.ctx = ctx;
+    this.ctx.canvas.focus();
+
     this.guide = guide;
 
     this.ctx.lineWidth = 0.5;
     this.ctx.strokeStyle = "white";
     this.ctx.fillStyle = "#bada55";
 
-    this.asteroids = [];
-    for (let i = 0; i < 6; i++) {
-      this.asteroids.push(this.createMovingAsteroid());
-    }
-
-    this.ship = new Ship(this.w / 2, this.h / 2, 1000, 400);
-
     this.healthIndicator = new Indicator("HP", 5, 5, 100, 10);
     this.scoreIndicator = new NumberIndicator("Score", this.w - 10, 5);
     this.fpsIndicator = new NumberIndicator("FPS", this.w - 10, this.h - 15, {
       digits: 2,
     });
+    this.message = new Message(this.w / 2, this.h * 0.45);
 
     this.ctx.canvas.addEventListener("keydown", (event) => {
       this.keyboardHandler(event, true);
@@ -72,7 +72,25 @@ class Game {
       this.keyboardHandler(event, false);
     });
 
-    this.ctx.canvas.focus();
+    this.asteroids = [];
+    for (let i = 0; i < 6; i++) {
+      this.asteroids.push(this.createMovingAsteroid());
+    }
+
+    this.ship = new Ship(this.w / 2, this.h / 2, 1000, 400);
+  }
+
+  private resetGame() {
+    this.asteroids = [];
+    for (let i = 0; i < 6; i++) {
+      this.asteroids.push(this.createMovingAsteroid());
+    }
+
+    this.ship = new Ship(this.w / 2, this.h / 2, 1000, 400);
+
+    this.projectiles = [];
+    this.score = 0;
+    this.gameOver = false;
   }
 
   private get w() {
@@ -117,9 +135,23 @@ class Game {
       projectile.draw(this.ctx);
     });
 
+    if (this.gameOver) {
+      this.message.draw(
+        this.ctx,
+        "GAME OVER",
+        `Final score: ${this.score.toFixed()}`,
+        "Press space to play again"
+      );
+      return;
+    }
+
     this.ship.draw(this.ctx, this.guide);
 
-    this.healthIndicator.draw(this.ctx, this.ship.health, this.ship.maxHealth);
+    this.healthIndicator.draw(
+      this.ctx,
+      this.ship.healthValue,
+      this.ship.maxHealthValue
+    );
     this.scoreIndicator.draw(this.ctx, this.score);
 
     if (this.guide) {
@@ -136,6 +168,11 @@ class Game {
         this.ship.isCompromised = true;
       }
     });
+
+    if (this.ship.healthValue <= 0) {
+      this.gameOver = true;
+      return;
+    }
 
     this.ship.update(elapsed, this.ctx);
 
@@ -174,7 +211,11 @@ class Game {
         this.ship.leftThrusterOn = isPressed;
         break;
       case "Space":
-        this.ship.isFired = isPressed;
+        if (this.gameOver) {
+          this.resetGame();
+        } else {
+          this.ship.isFired = isPressed;
+        }
         break;
       case "KeyG":
         if (isPressed) {
@@ -250,7 +291,5 @@ class Game {
   };
 }
 
-const game = new Game(document.getElementById("asteroids"), true);
-// @ts-ignore
-window.game = game;
+const game = new Game(document.getElementById("asteroids"));
 game.run();
