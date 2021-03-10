@@ -37,7 +37,7 @@ export class Ship extends Mass {
     weaponPower?: number,
     options?: ShipOptions
   ) {
-    super(x, y, 10, 15, 1.5 * Math.PI);
+    super(x, y, 10, 12, 1.5 * Math.PI);
     this.thrusterPower = thrusterPower;
     this.weaponPower = weaponPower ?? 200;
     this.thrusterOn = false;

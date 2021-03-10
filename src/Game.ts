@@ -7,6 +7,7 @@ import { Projectile } from "./Projectile";
 import { Mass } from "./Mass";
 import { isColliding } from "./util";
 import { Indicator } from "./Indicator";
+import { NumberIndicator } from "./NumberIndicator";
 
 class Game {
   private canvas: HTMLCanvasElement;
@@ -18,6 +19,8 @@ class Game {
   private readonly ship: Ship;
   private projectiles: Projectile[] = [];
   private readonly healthIndicator: Indicator;
+  private readonly scoreIndicator: NumberIndicator;
+  private readonly fpsIndicator: NumberIndicator;
 
   private previous: number = 0;
   private elapsed: number = 0;
@@ -25,6 +28,7 @@ class Game {
   private readonly asteroidMass = 10000;
   private readonly massDestroyed = 500;
   private score = 0;
+  private fps = 0;
 
   constructor(canvas: HTMLElement | null, guide?: boolean) {
     console.info("[[Initializing Asteroids game]]");
@@ -55,6 +59,10 @@ class Game {
     this.ship = new Ship(this.w / 2, this.h / 2, 1000, 400);
 
     this.healthIndicator = new Indicator("HP", 5, 5, 100, 10);
+    this.scoreIndicator = new NumberIndicator("Score", this.w - 10, 5);
+    this.fpsIndicator = new NumberIndicator("FPS", this.w - 10, this.h - 15, {
+      digits: 2,
+    });
 
     this.ctx.canvas.addEventListener("keydown", (event) => {
       this.keyboardHandler(event, true);
@@ -81,6 +89,7 @@ class Game {
     }
 
     this.elapsed = timestamp - this.previous;
+    this.fps = 1000 / this.elapsed;
 
     this.update(this.elapsed / 1000.0);
     this.draw();
@@ -111,6 +120,11 @@ class Game {
     this.ship.draw(this.ctx, this.guide);
 
     this.healthIndicator.draw(this.ctx, this.ship.health, this.ship.maxHealth);
+    this.scoreIndicator.draw(this.ctx, this.score);
+
+    if (this.guide) {
+      this.fpsIndicator.draw(this.ctx, this.fps);
+    }
   };
 
   private update = (elapsed: number) => {
